@@ -1,6 +1,8 @@
 import React, { useState, useMemo } from 'react';
 
 const TransactionTable = ({ transactions = [] }) => {
+  console.log("TransactionTable.jsx - transactions prop:", transactions); // Log the transactions prop
+
   const [sortColumn, setSortColumn] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
   const [filterStart, setFilterStart] = useState('');
@@ -25,19 +27,20 @@ const TransactionTable = ({ transactions = [] }) => {
 
   const sortedTransactions = useMemo(() => {
     if (!sortColumn) return filteredTransactions;
-    const sorted = [...filteredTransactions].sort((a, b) => {
-      if (sortColumn === 'date' || sortColumn === 'amount') {
-        if (a[sortColumn] < b[sortColumn]) return sortDirection === 'asc' ? -1 : 1;
-        if (a[sortColumn] > b[sortColumn]) return sortDirection === 'asc' ? 1 : -1;
-        return 0;
-      }
+
+    return [...filteredTransactions].sort((a, b) => {
+      const aValue = sortColumn === 'date' ? new Date(a[sortColumn]) : a[sortColumn];
+      const bValue = sortColumn === 'date' ? new Date(b[sortColumn]) : b[sortColumn];
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
       return 0;
     });
-    return sorted;
   }, [filteredTransactions, sortColumn, sortDirection]);
 
   return (
     <div className="p-4">
+      {/* Filtering inputs */}
       <div className="mb-4 flex space-x-2">
         <div>
           <label className="block text-sm font-medium text-gray-700">Start Date</label>
@@ -58,6 +61,8 @@ const TransactionTable = ({ transactions = [] }) => {
           />
         </div>
       </div>
+
+      {/* Table */}
       <table className="min-w-full divide-y divide-gray-200">
         <thead className="bg-gray-50">
           <tr>
@@ -87,7 +92,7 @@ const TransactionTable = ({ transactions = [] }) => {
               <td className="px-6 py-4 whitespace-nowrap">{tx.date}</td>
               <td className="px-6 py-4 whitespace-nowrap">{tx.amount}</td>
               <td className="px-6 py-4 whitespace-nowrap">{tx.reason}</td>
-              <td className="px-6 py-4 whitespace-nowrap">{tx.party}</td>
+              <td className="px-6 py-4 whitespace-nowrap">{tx.payer || tx.receiver}</td>
             </tr>
           ))}
         </tbody>

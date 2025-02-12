@@ -1,58 +1,80 @@
 import React, { useState } from 'react';
 import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
 
-const FileInput = () => {
-  const [extractedData, setExtractedData] = useState([]);
+const FileInput = ({ setTransactions }) => {
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
+    if (!file) return;
 
-    if (file) {
-      const reader = new FileReader();
+    setLoading(true);
+    setError('');
+    setTransactions([]);
 
-      reader.onload = async (e) => {
-        try {
-          const text = e.target.result;
-          const parsedData = JSON.parse(text);
-          const transactions = [];
+    try {
+      const text = await file.text();
+      const parsedData = JSON.parse(text);
 
-          if (Array.isArray(parsedData)) {
-            for (const message of parsedData) {
-              if (message?.text) {
-                let transactionData = null;
-                const link = extractFromSms(message.text);
+      if (!Array.isArray(parsedData)) {
+        setError('Invalid JSON format: Expected an array of messages.');
+        return;
+      }
 
-                if (link && link.includes('cbe.com.et')) {
-                  const result = await fetchContent(link);
-                  if (result.type === 'pdf') {
-                    transactionData = extractFromPdf(result.text);
-                  } else {
-                    console.error(result.message);
-                  }
-                }
-
-                if (transactionData) {
-                  transactions.push(transactionData);
-                }
-              }
-            }
-            setExtractedData(transactions);
-          } else {
-            setError('Invalid JSON format: Expected an array of messages.');
+      const transactions = [];
+      for (const message of parsedData) {
+        if (message?.text) {
+          // Extract Balance *BEFORE* fetching the PDF
+          let currentBalance = null;
+          const balanceRegex = /Your Current Balance is ETB\s*([\d,\.]+)/; // Regex to extract balance
+          const balanceMatch = message.text.match(balanceRegex);
+          if (balanceMatch) {
+            currentBalance = parseFloat(balanceMatch[1].replace(/,/g, '')); // Remove commas and parse
           }
-        } catch (error) {
-          setError('Invalid JSON file.');
-          setExtractedData([]);
+          console.log("FileInput.jsx - Extracted balance from SMS:", currentBalance);
+
+
+          let transactionData = null;
+          const link = extractFromSms(message.text);
+
+          if (link && link.includes('cbe.com.et')) {
+            const result = await fetchContent(link);
+            if (result.type === 'pdf') {
+              transactionData = extractFromPdf(result.text);
+            } else {
+              console.error("Error fetching or parsing PDF:", result.message);
+              setError(`Error fetching or parsing PDF: ${result.message}`);
+            }
+          }
+
+            // Combine PDF data with extracted balance
+          if (transactionData) {
+            transactions.push({
+              ...transactionData,  // Spread the PDF data
+              currentBalance: currentBalance !== null ? currentBalance : transactionData.currentBalance, // Use SMS balance if available
+              //the following fields are already handled by spread operator(...transactioData)
+              // amount: transactionData.amount,
+              // date: transactionData.date,
+              // time: transactionData.time,
+              // receiver: transactionData.receiver,
+              // payer: transactionData.payer,
+              // reason: transactionData.reason,
+              // totalAmount: transactionData.totalAmount
+            });
+          }
         }
-      };
+      }
+      setTransactions(transactions);
+      if (transactions.length === 0) {
+        setError("No transactions found in the file.");
+      }
 
-      reader.onerror = () => {
-        setError('Error reading file.');
-        setExtractedData([]);
-      };
-
-      reader.readAsText(file);
+    } catch (error) {
+      console.error("File processing error:", error);
+      setError('Error processing file. Please ensure it is a valid JSON file.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -64,22 +86,8 @@ const FileInput = () => {
         onChange={handleFileChange}
         className="mb-4 p-2 border border-gray-300 rounded-md"
       />
+      {loading && <p className="text-blue-500">Loading...</p>}
       {error && <p className="text-red-500">{error}</p>}
-      {extractedData.length > 0 && (
-        <div className="bg-gray-100 p-4 rounded-md overflow-auto">
-          <p className="font-bold mb-2">Extracted Transactions:</p>
-          <ul>
-            {extractedData.map((transaction, index) => (
-              <li key={index}>
-                {/* Display basic transaction details for now */}
-                <p>Amount: {transaction.amount}</p>
-                <p>Date: {transaction.date}</p>
-                {/* Add other fields as needed */}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 };

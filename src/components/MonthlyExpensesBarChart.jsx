@@ -11,16 +11,23 @@ import {
 } from 'recharts';
 
 const MonthlyExpensesBarChart = ({ data = [] }) => {
-  // Aggregate expenses by month.
-  // Assumes each transaction object has a valid 'date' property and an 'amount' property.
+  console.log("MonthlyExpensesBarChart.jsx - data prop:", data); // Log the data prop
+
   const aggregatedData = data.reduce((acc, transaction) => {
     const date = new Date(transaction.date);
-    // Get month as short name (e.g., Jan, Feb)
-    const month = date.toLocaleString('default', { month: 'short' });
+
+    // Check for invalid date
+    if (isNaN(date)) {
+      console.warn("Invalid date found:", transaction.date);
+      return acc; // Skip this transaction
+    }
+
+    const month = date.toISOString().slice(0, 7); // Use YYYY-MM format
+
     if (!acc[month]) {
       acc[month] = 0;
     }
-    acc[month] += transaction.amount;
+    acc[month] += transaction.amount; // Ensure amount is a number
     return acc;
   }, {});
 
@@ -28,6 +35,8 @@ const MonthlyExpensesBarChart = ({ data = [] }) => {
     month,
     total
   }));
+
+    console.log("MonthlyExpensesBarChart.jsx - chartData:", chartData);
 
   return (
     <ResponsiveContainer width="100%" height={300}>
