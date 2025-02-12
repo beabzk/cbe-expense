@@ -1,4 +1,6 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import pdfjsWorkerUrl from 'pdfjs-dist/build/pdf.worker.mjs?url';
+pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(pdfjsWorkerUrl, import.meta.url).toString();
 
 /**
  * Extracts transaction link from SMS text.
