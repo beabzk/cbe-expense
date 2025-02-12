@@ -119,3 +119,105 @@ export function extractFromPdf(text) {
     console.log("extractFromPdf - Extracted data:", extractedData);
     return extractedData;
 }
+
+
+// Added sorting function
+export function sortData(data, sortColumn, sortDirection) {
+    if (!sortColumn) return data;
+
+    return [...data].sort((a, b) => {
+      const aValue = sortColumn === 'date' ? new Date(a[sortColumn]) : a[sortColumn];
+      const bValue = sortColumn === 'date' ? new Date(b[sortColumn]) : b[sortColumn];
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  // --- Functions for aggregating top recipients, senders, and reasons ---
+
+export function getTopRecipients(transactions, limit = 25) {
+  // ... (logic from TopRecipientsTable's useMemo) ...
+   const recipientCounts = {};
+    const recipientTotals = {};
+
+    transactions.forEach((tx) => {
+      if (tx.receiver) { // Only count if there's a receiver
+        recipientCounts[tx.receiver] = (recipientCounts[tx.receiver] || 0) + 1;
+        recipientTotals[tx.receiver] = (recipientTotals[tx.receiver] || 0) + tx.amount;
+      }
+    });
+
+    const sortedRecipients = Object.entries(recipientCounts)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .slice(0, limit); // Top 25/limit
+
+    return sortedRecipients.map(([recipient, count]) => ({
+      recipient,
+      amount: recipientTotals[recipient],
+      count,
+    }));
+}
+
+export function getTopSenders(transactions, limit = 25) {
+    // ... (logic from TopSendersTable's useMemo )
+      const senderCounts = {};
+      const senderTotals = {};
+
+      transactions.forEach((tx) => {
+        if (tx.payer) { // Only count if there is a payer
+          senderCounts[tx.payer] = (senderCounts[tx.payer] || 0) + 1;
+          senderTotals[tx.payer] = (senderTotals[tx.payer] || 0) + Math.abs(tx.amount);  // Use absolute value for consistency
+        }
+      });
+
+      const sortedSenders = Object.entries(senderCounts)
+        .sort(([, countA], [, countB]) => countB - countA)
+        .slice(0, limit);
+
+      return sortedSenders.map(([sender, count]) => ({
+        sender,
+        amount: senderTotals[sender],
+        count
+      }));
+}
+
+export function getTopReasons(transactions, limit = 25) {
+  // ... (logic from TopReasonsTable's useMemo)
+    const reasonCounts = {};
+    const reasonTotals = {};
+
+    transactions.forEach((tx) => {
+      if (tx.reason) {
+        reasonCounts[tx.reason] = (reasonCounts[tx.reason] || 0) + 1;
+        reasonTotals[tx.reason] = (reasonTotals[tx.reason] || 0) + Math.abs(tx.amount); // Use absolute value for consistency
+      }
+    });
+
+    const sortedReasons = Object.entries(reasonCounts)
+      .sort(([, countA], [, countB]) => countB - countA)
+      .slice(0, limit); // Top 25
+
+      return sortedReasons.map(([reason, count]) => ({
+        reason,
+        category: "Unknown", // Placeholder, you'll need a way to map reasons to categories
+        amount: reasonTotals[reason],
+        count,
+    }));
+}
+
+//you can also add a similar function for category distribution in the pie chart
+
+export function getCategoryDistribution(transactions) {
+    const categoryCounts = {};
+    transactions.forEach(tx => {
+        const category = tx.reason || "Uncategorized"; // Use reason as category, or default
+        categoryCounts[category] = (categoryCounts[category] || 0) + 1;
+    });
+
+    return Object.entries(categoryCounts).map(([name, value]) => ({
+        name,
+        value
+    }));
+}

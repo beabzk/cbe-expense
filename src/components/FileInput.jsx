@@ -1,10 +1,22 @@
 import React, { useState } from 'react';
 import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
 
+/**
+ * A component that handles file input, parsing of the uploaded JSON file,
+ * extraction of transaction data from SMS messages and linked PDF receipts.
+ *
+ * @param {object} props - The component props.
+ * @param {function} props.setTransactions - A function to update the main transaction state in the parent component.
+ * @returns {JSX.Element} The rendered FileInput component.
+ */
 const FileInput = ({ setTransactions }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+    /**
+     * Handles the file change event. Reads and parses the file, extracts transaction data.
+     * @param {Event} event - The file input change event.
+     */
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -25,19 +37,18 @@ const FileInput = ({ setTransactions }) => {
       const transactions = [];
       for (const message of parsedData) {
         if (message?.text) {
-          // Extract Balance *BEFORE* fetching the PDF
+           // Extract the current balance from the SMS text *before* fetching the PDF.
           let currentBalance = null;
-          const balanceRegex = /Your Current Balance is ETB\s*([\d,\.]+)/; // Regex to extract balance
+          const balanceRegex = /Your Current Balance is ETB\s*([\d,\.]+)/;
           const balanceMatch = message.text.match(balanceRegex);
           if (balanceMatch) {
-            currentBalance = parseFloat(balanceMatch[1].replace(/,/g, '')); // Remove commas and parse
+            currentBalance = parseFloat(balanceMatch[1].replace(/,/g, ''));
           }
-          console.log("FileInput.jsx - Extracted balance from SMS:", currentBalance);
-
 
           let transactionData = null;
           const link = extractFromSms(message.text);
 
+          // If a CBE link exists, fetch and parse the PDF.
           if (link && link.includes('cbe.com.et')) {
             const result = await fetchContent(link);
             if (result.type === 'pdf') {
@@ -48,24 +59,21 @@ const FileInput = ({ setTransactions }) => {
             }
           }
 
-            // Combine PDF data with extracted balance
+           // Combine data extracted from PDF (if any) with the balance from the SMS.
+            // Prioritize the balance extracted from the SMS.
           if (transactionData) {
             transactions.push({
-              ...transactionData,  // Spread the PDF data
-              currentBalance: currentBalance !== null ? currentBalance : transactionData.currentBalance, // Use SMS balance if available
-              //the following fields are already handled by spread operator(...transactioData)
-              // amount: transactionData.amount,
-              // date: transactionData.date,
-              // time: transactionData.time,
-              // receiver: transactionData.receiver,
-              // payer: transactionData.payer,
-              // reason: transactionData.reason,
-              // totalAmount: transactionData.totalAmount
+              ...transactionData,
+              currentBalance: currentBalance !== null ? currentBalance : transactionData.currentBalance,
             });
           }
         }
       }
-      setTransactions(transactions);
+        // Sort transactions by date in descending order (newest first). This is crucial
+        // for correct balance calculation in SummaryCards.
+      transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      setTransactions(transactions); // Update the main transaction state.
       if (transactions.length === 0) {
         setError("No transactions found in the file.");
       }
