@@ -1,31 +1,56 @@
 import React, { useState } from 'react';
+import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
 
 const FileInput = () => {
-  const [jsonData, setJsonData] = useState(null);
+  const [extractedData, setExtractedData] = useState([]);
   const [error, setError] = useState('');
 
-  const handleFileChange = (event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files[0];
 
     if (file) {
       const reader = new FileReader();
 
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         try {
           const text = e.target.result;
           const parsedData = JSON.parse(text);
-          setJsonData(parsedData);
-          setError('');
+          const transactions = [];
+
+          if (Array.isArray(parsedData)) {
+            for (const message of parsedData) {
+              if (message?.text) {
+                let transactionData = null;
+                const link = extractFromSms(message.text);
+
+                if (link && link.includes('cbe.com.et')) {
+                  const result = await fetchContent(link);
+                  if (result.type === 'pdf') {
+                    transactionData = extractFromPdf(result.text);
+                  } else {
+                    console.error(result.message);
+                  }
+                }
+
+                if (transactionData) {
+                  transactions.push(transactionData);
+                }
+              }
+            }
+            setExtractedData(transactions);
+          } else {
+            setError('Invalid JSON format: Expected an array of messages.');
+          }
         } catch (error) {
           setError('Invalid JSON file.');
-          setJsonData(null);
+          setExtractedData([]);
         }
       };
 
       reader.onerror = () => {
         setError('Error reading file.');
-        setJsonData(null);
-      }
+        setExtractedData([]);
+      };
 
       reader.readAsText(file);
     }
@@ -40,10 +65,20 @@ const FileInput = () => {
         className="mb-4 p-2 border border-gray-300 rounded-md"
       />
       {error && <p className="text-red-500">{error}</p>}
-      {jsonData && (
-        <pre className="bg-gray-100 p-4 rounded-md overflow-auto">
-          {JSON.stringify(jsonData, null, 2)}
-        </pre>
+      {extractedData.length > 0 && (
+        <div className="bg-gray-100 p-4 rounded-md overflow-auto">
+          <p className="font-bold mb-2">Extracted Transactions:</p>
+          <ul>
+            {extractedData.map((transaction, index) => (
+              <li key={index}>
+                {/* Display basic transaction details for now */}
+                <p>Amount: {transaction.amount}</p>
+                <p>Date: {transaction.date}</p>
+                {/* Add other fields as needed */}
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );
