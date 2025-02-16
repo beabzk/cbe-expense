@@ -67,26 +67,26 @@ const MonthlyExpensesChart = ({ data = [] }) => {
     <ResponsiveContainer width="100%" height={300}>
       <LineChart
         data={chartData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
       >
-        <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-        <XAxis dataKey="month" stroke="#666" />
-        <YAxis stroke="#666" />
-        <Tooltip />
-        <Legend  wrapperStyle={{ bottom: 5, left: 5, width: '100%', textAlign: 'center' }}/>
+        <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" /> {/* Lighter grid */}
+        <XAxis dataKey="month" stroke="#666" tick={{fontSize: 12}}  tickMargin={10}/>  {/* Increase font size */}
+        <YAxis stroke="#666" tick={{fontSize: 12}} />
+        <Tooltip  contentStyle={{ backgroundColor: '#fff', border: '1px solid #ccc', borderRadius: '4px', padding: '10px' }}/>
+        <Legend wrapperStyle={{ bottom: 0, left: 0, width: '100%', textAlign: 'center' }} />
         <Line
           type="monotone"
           dataKey="Expenses"
-          stroke="#ff7c43"
-          strokeWidth={1}
-          dot={{ r: 3, fill: "#fff", stroke: "#ff7c43", strokeWidth: 1 }}
+          stroke="#c2410c" // Changed to Tailwind's orange-600
+          strokeWidth={2}
+          dot={{ r: 4, fill: "#fff", stroke: "#c2410c", strokeWidth: 2 }} // Consistent with stroke
         />
         <Line
           type="monotone"
           dataKey="Balance"
-          stroke="#2563eb"  // Changed to a blue color
-          strokeWidth={1}
-            dot={{ r: 3, fill: "#fff", stroke: "#2563eb", strokeWidth: 1 }}
+          stroke="#6b21a8"  // Changed to CBE purple
+          strokeWidth={2}
+          dot={{ r: 4, fill: "#fff", stroke: "#6b21a8", strokeWidth: 2 }} // Consistent
         />
       </LineChart>
     </ResponsiveContainer>

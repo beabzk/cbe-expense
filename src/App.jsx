@@ -18,47 +18,47 @@ function App() {
   const [transactions, setTransactions] = useState([]);
 
   return (
-    <div className="container mx-auto p-4 space-y-8">
-      <h1 className="text-2xl font-bold mb-4">Transaction Dashboard</h1>
+    <div className="container mx-auto p-6 md:p-8 bg-gray-100 min-h-screen">
+      <h1 className="text-3xl font-bold text-cbe-purple mb-6">CBE Transaction Dashboard</h1>
       {/* FileInput component to handle user file uploads. */}
-      <FileInput setTransactions={setTransactions}  />
+      <FileInput setTransactions={setTransactions} />
 
       {/* Conditionally render dashboard components only if transactions exist. */}
       {transactions.length > 0 ? (
         <>
           {/* SummaryCards component to display overall financial metrics. */}
-          <div>
+          <div className="mb-8">
             <SummaryCards transactions={transactions} />
           </div>
 
           {/* MonthlyExpensesChart to visualize expenses and balance over time. */}
-          <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-            <div className="flex flex-col space-y-1.5 p-6">
-              <div className="text-2xl font-semibold leading-none tracking-tight">Monthly Expenses and Income</div>
+          <div className="rounded-lg border bg-cbe-purple-light text-cbe-purple-dark shadow-sm mb-8">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold">Monthly Expenses and Income</h2>
             </div>
             <div className="p-6 pt-0 h-96">
-                <MonthlyExpensesChart data={transactions} />
+              <MonthlyExpensesChart data={transactions} />
             </div>
           </div>
 
-            {/* Container for Top Recipients and Top Senders tables, using a responsive grid layout. */}
-          <div className="grid grid-cols-1 gap-4">
+          {/* Container for Top Recipients and Top Senders tables, using a responsive grid layout. */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
             <TopRecipientsTable transactions={transactions} />
-            {/* TopSendersTable component removed as per the requirements. */}
+             {/* TopSendersTable component is removed */}
+            <TopReasonsTable transactions={transactions} />
+          </div>
+          {/* component to visualize transaction distribution by recipient as a pie chart.*/}
+          <div className='mb-8'>
+            <TransactionDistributionPieChart transactions={transactions}/>
           </div>
 
-            {/* TopReasonsTable component. */}
-          <TopReasonsTable transactions={transactions} />
-
-            {/* component to visualize transaction distribution by recipient as a pie chart.*/}
-          <TransactionDistributionPieChart transactions={transactions}/>
-            {/* The main TransactionTable component to display detailed transaction records. */}
-          <div className="mt-4">
-              <TransactionTable transactions={transactions} />
+          {/* The main TransactionTable component to display detailed transaction records. */}
+          <div className="mt-8">
+            <TransactionTable transactions={transactions} />
           </div>
         </>
       ) : (
-        <p>Please upload an SMS file to view transactions.</p>
+        <p className="text-gray-600">Please upload your CBE SMS data file (JSON format) to view your transactions.</p>
       )}
     </div>
   );

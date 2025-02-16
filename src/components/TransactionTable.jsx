@@ -60,67 +60,79 @@ const TransactionTable = ({ transactions = [] }) => {
   return (
      <div className="p-4">
       {/* Date Filtering inputs */}
-      <div className="mb-4 flex space-x-2">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Start Date</label>
+      <div className="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+        <div className='flex flex-col'>
+          <label htmlFor="filterStart" className="block text-sm font-medium text-gray-700">Start Date</label>
           <input
+            id="filterStart"
             type="date"
             value={filterStart}
             onChange={(e) => setFilterStart(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-transparent"
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700">End Date</label>
+        <div className='flex flex-col'>
+          <label htmlFor="filterEnd" className="block text-sm font-medium text-gray-700">End Date</label>
           <input
+            id="filterEnd"
             type="date"
             value={filterEnd}
             onChange={(e) => setFilterEnd(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-transparent"
           />
         </div>
       </div>
 
-       <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-          <div className="flex flex-col space-y-1.5 p-6">
-              <div className="text-2xl font-semibold leading-none tracking-tight">Transaction</div>
+       <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
+          <div className="p-4 md:p-6">
+              <h2 className="text-xl font-semibold text-cbe-purple">Transactions</h2>
             </div>
-            <div className="p-6 pt-0">
-                <div className="h-96 overflow-auto">
-                    <table className="w-full">
-                        <thead className="sticky top-0 bg-white">
+            <div className="p-4 md:p-6 pt-0">
+                <div className="overflow-x-auto"> {/*  horizontal scrolling on small screens */}
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
                         <tr>
                             <th
+                            scope="col"
                             onClick={() => handleSort('date')}
-                            className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                            className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                             >
                             Date {sortColumn === 'date' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                             </th>
                             <th
+                            scope="col"
                             onClick={() => handleSort('amount')}
-                            className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                            className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
                             >
-                            Amount {sortColumn === 'amount' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+                            Amount (ETB) {sortColumn === 'amount' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                             </th>
-                            <th  onClick={() => handleSort('reason')}
-                             className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                            <th  scope="col" onClick={() => handleSort('reason')}
+                             className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
                             Reason {sortColumn === 'reason' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                             </th>
-                             <th onClick={() => handleSort('receiver')}
-                                className="p-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
+                             <th scope="col" onClick={() => handleSort('receiver')}
+                                className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer">
                                 Recipient {sortColumn === 'receiver' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                             </th>
                         </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                        {sortedTransactions.map((tx, index) => (
-                            <tr key={index} className="border-t">
-                            <td className="p-2 whitespace-nowrap">{tx.date}</td>
-                            <td className="p-2 whitespace-nowrap">{tx.amount}</td>
-                            <td className="p-2 whitespace-nowrap">{tx.reason}</td>
-                            <td className="p-2 whitespace-nowrap">{tx.receiver}</td>
+                         {sortedTransactions.length > 0 ? (
+                            sortedTransactions.map((tx, index) => (
+                                <tr key={index} className="hover:bg-gray-50 transition-colors duration-150">
+                                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">{tx.date}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">{tx.amount && tx.amount.toFixed(2)}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">{tx.reason}</td>
+                                    <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">{tx.receiver}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="4" className="p-4 text-center text-gray-600">
+                                    No transactions found matching the selected criteria.
+                                </td>
                             </tr>
-                        ))}
+                         )}
                         </tbody>
                     </table>
               </div>

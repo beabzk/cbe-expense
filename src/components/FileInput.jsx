@@ -3,7 +3,8 @@ import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
 
 /**
  * A component that handles file input, parsing of the uploaded JSON file,
- * extraction of transaction data from SMS messages and linked PDF receipts.
+ * extraction of transaction data from SMS messages and linked PDF receipts,
+ * and provides progress updates to the user.
  *
  * @param {object} props - The component props.
  * @param {function} props.setTransactions - A function to update the main transaction state in the parent component.
@@ -12,11 +13,8 @@ import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
 const FileInput = ({ setTransactions }) => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [progressMessage, setProgressMessage] = useState(''); // NEW: Progress message
 
-    /**
-     * Handles the file change event. Reads and parses the file, extracts transaction data.
-     * @param {Event} event - The file input change event.
-     */
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
@@ -24,9 +22,11 @@ const FileInput = ({ setTransactions }) => {
     setLoading(true);
     setError('');
     setTransactions([]);
+    setProgressMessage('Reading file...'); // Initial progress message
 
     try {
       const text = await file.text();
+      setProgressMessage('Parsing JSON...');
       const parsedData = JSON.parse(text);
 
       if (!Array.isArray(parsedData)) {
@@ -35,9 +35,10 @@ const FileInput = ({ setTransactions }) => {
       }
 
       const transactions = [];
-      for (const message of parsedData) {
+      setProgressMessage('Processing SMS messages...'); // Update progress
+
+      for (const [index, message] of parsedData.entries()) {
         if (message?.text) {
-           // Extract the current balance from the SMS text *before* fetching the PDF.
           let currentBalance = null;
           const balanceRegex = /Your Current Balance is ETB\s*([\d,\.]+)/;
           const balanceMatch = message.text.match(balanceRegex);
@@ -48,8 +49,8 @@ const FileInput = ({ setTransactions }) => {
           let transactionData = null;
           const link = extractFromSms(message.text);
 
-          // If a CBE link exists, fetch and parse the PDF.
           if (link && link.includes('cbe.com.et')) {
+            setProgressMessage(`Fetching and parsing PDF ${index + 1} of ${parsedData.length}...`); // More specific progress
             const result = await fetchContent(link);
             if (result.type === 'pdf') {
               transactionData = extractFromPdf(result.text);
@@ -59,8 +60,6 @@ const FileInput = ({ setTransactions }) => {
             }
           }
 
-           // Combine data extracted from PDF (if any) with the balance from the SMS.
-            // Prioritize the balance extracted from the SMS.
           if (transactionData) {
             transactions.push({
               ...transactionData,
@@ -68,12 +67,15 @@ const FileInput = ({ setTransactions }) => {
             });
           }
         }
-      }
-        // Sort transactions by date in descending order (newest first). This is crucial
-        // for correct balance calculation in SummaryCards.
-      transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-      setTransactions(transactions); // Update the main transaction state.
+          // Update progress indicator.  Do this *inside* the loop to show
+          // progress as each SMS/PDF is processed.
+          const percentage = Math.round(((index + 1) / parsedData.length) * 100);
+          setProgressMessage(`Processing SMS messages... ${percentage}%`);
+      }
+
+      transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setTransactions(transactions);
       if (transactions.length === 0) {
         setError("No transactions found in the file.");
       }
@@ -83,19 +85,46 @@ const FileInput = ({ setTransactions }) => {
       setError('Error processing file. Please ensure it is a valid JSON file.');
     } finally {
       setLoading(false);
+      setProgressMessage(''); // Clear progress message when done
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center mb-8">
       <input
         type="file"
         accept=".json"
         onChange={handleFileChange}
-        className="mb-4 p-2 border border-gray-300 rounded-md"
+        className="mb-4 p-3 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-transparent"
       />
-      {loading && <p className="text-blue-500">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+
+      {loading && (
+        <div className="flex items-center justify-center text-cbe-purple">
+          <svg
+            className="animate-spin h-5 w-5 mr-2"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          <span>{progressMessage}</span> {/* Display the progress message */}
+        </div>
+      )}
+
+      {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   );
 };

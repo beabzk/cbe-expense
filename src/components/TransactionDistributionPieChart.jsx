@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#AF19FF', '#FF33F6']; // Add more colors
+const COLORS = ['#6b21a8', '#9333ea', '#a855f7', '#c084fc', '#d8b4fe']; // Using purple shades
 
 /**
  *  A component to display the distribution of transactions by recipients using a pie chart.
@@ -31,14 +31,11 @@ const TransactionDistributionPieChart = ({ transactions }) => {
 
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="flex flex-col space-y-1.5 p-6">
-        <div className="flex justify-between items-center">
-          {/* Updated Title */}
-          <div className="text-2xl font-semibold leading-none tracking-tight">Transaction Distribution by Recipients</div>
-        </div>
+      <div className="p-6">
+        <h2 className="text-2xl font-semibold text-cbe-purple">Transaction Distribution by Recipients</h2>
       </div>
       <div className="p-6 pt-0">
-        <div className="h-[500px] w-full">
+        <div className="h-[300px] md:h-[400px] w-full">  {/* Adjusted heights */}
           <ResponsiveContainer>
             <PieChart>
               <Pie
@@ -46,7 +43,7 @@ const TransactionDistributionPieChart = ({ transactions }) => {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={150}
+                outerRadius={120}
                 fill="#8884d8"
                 dataKey="value"
                 label
@@ -55,7 +52,16 @@ const TransactionDistributionPieChart = ({ transactions }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip
+                    wrapperStyle={{  // Style the tooltip container
+                    backgroundColor: '#fff',
+                    border: '1px solid #ccc',
+                    borderRadius: '4px',
+                    padding: '4px 8px', // Less padding
+                    fontSize: '0.8rem', // Smaller font
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.1)', // Subtle shadow
+                    }}
+                />
             </PieChart>
           </ResponsiveContainer>
         </div>

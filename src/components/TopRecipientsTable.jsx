@@ -29,7 +29,7 @@ const TopRecipientsTable = ({ transactions }) => {
     /**
      * Aggregates transaction data to determine the top recipients.
      * Calculates total amounts and counts for each recipient.
-     * useMemo ensures that the data is only re-aggregated when `transactions` changes.
+     * useMemo ensures that this calculation only happens when `transactions` changes.
      */
   const topRecipients = useMemo(() => {
     if (!transactions || transactions.length === 0) {
@@ -68,36 +68,51 @@ const TopRecipientsTable = ({ transactions }) => {
 
 
   return (
-    <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
-      <div className="flex flex-col space-y-1.5 p-6">
-          <div className="text-2xl font-semibold leading-none tracking-tight">Top 25 Recipients</div>
+    <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
+      <div className="p-4 md:p-6">
+        <h2 className="text-xl font-semibold text-cbe-purple">Top 25 Recipients</h2>
       </div>
-       <div className="p-6 pt-0">
-        <div className="h-96 overflow-auto">
-            <table className="w-full">
-            <thead className="sticky top-0 bg-white">
+       <div className="p-4 md:p-6 pt-0">
+        <div className="overflow-x-auto"> {/* Use overflow-x-auto for horizontal scrolling on small screens */}
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="p-2 text-left cursor-pointer" onClick={() => handleSort('recipient')}>
+                <th
+                  scope="col"
+                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('recipient')}
+                >
                   Recipient {sortColumn === 'recipient' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                 </th>
-                <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('amount')}>
+                <th
+                  scope="col"
+                  className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  onClick={() => handleSort('amount')}
+                >
                   Amount (ETB) {sortColumn === 'amount' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                 </th>
-                <th className="p-2 text-right cursor-pointer" onClick={() => handleSort('count')}>
-                  Count {sortColumn === 'count' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
+                <th
+                    scope="col"
+                    className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    onClick={() => handleSort('count')}
+                    >
+                    Count {sortColumn === 'count' ? (sortDirection === 'asc' ? '↑' : '↓') : ''}
                 </th>
               </tr>
             </thead>
-            <tbody>
-                {sortedRecipients.map((item, index) => (
-                <tr key={index} className="border-t">
-                    <td className="p-2">{item.recipient}</td>
-                    <td className="p-2 text-right">{item.amount.toFixed(2)}</td>
-                    <td className="p-2 text-right">{item.count}</td>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {sortedRecipients.map((item, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors duration-150">
+                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">{item.recipient}</td>
+                  <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">{item.amount.toFixed(2)}</td>
+                   <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">{item.count}</td>
                 </tr>
-                ))}
+              ))}
             </tbody>
-            </table>
+          </table>
+          {sortedRecipients.length === 0 && (
+            <div className="p-4 text-gray-600">No transactions found.</div>
+          )}
         </div>
       </div>
     </div>

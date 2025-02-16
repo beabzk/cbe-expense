@@ -23,17 +23,17 @@ const SummaryCards = ({ transactions = [] }) => {
     : 0;
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 my-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Total Expenses Card */}
-      <div className="bg-red-100 border border-red-300 rounded-lg shadow p-4 flex-1">
-        <h3 className="text-xl font-semibold text-red-800">Total Expenses</h3>
-        <p className="text-2xl font-bold">ETB {totalExpenses.toFixed(2)}</p>
+      <div className="bg-red-50 border border-red-200 rounded-lg shadow-sm p-4 flex flex-col">
+        <h3 className="text-xl font-semibold text-red-700">Total Expenses</h3>
+        <p className="text-2xl font-bold text-red-800 mt-2">ETB {totalExpenses.toFixed(2)}</p>
       </div>
 
       {/* Current Balance Card */}
-      <div className="bg-blue-100 border border-blue-300 rounded-lg shadow p-4 flex-1">
-        <h3 className="text-xl font-semibold text-blue-800">Current Balance</h3>
-        <p className="text-2xl font-bold">ETB {currentBalance !== null ? currentBalance.toFixed(2) : 'N/A'}</p>
+      <div className="bg-green-50 border border-green-200 rounded-lg shadow-sm p-4 flex flex-col">
+        <h3 className="text-xl font-semibold text-green-700">Current Balance</h3>
+        <p className="text-2xl font-bold text-green-800 mt-2">ETB {currentBalance !== null ? currentBalance.toFixed(2) : 'N/A'}</p>
       </div>
     </div>
   );
