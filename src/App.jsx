@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import FileInput from './components/FileInput';
 import TransactionTable from './components/TransactionTable';
 import SummaryCards from './components/SummaryCards';
@@ -15,53 +15,78 @@ import TransactionDistributionPieChart from './components/TransactionDistributio
  * @returns {JSX.Element} The rendered App component.
  */
 function App() {
-  const [transactions, setTransactions] = useState([]);
+    const [transactions, setTransactions] = useState([]);
 
-  return (
-    <div className="container mx-auto p-6 md:p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold text-cbe-purple mb-6">CBE Transaction Dashboard</h1>
-      {/* FileInput component to handle user file uploads. */}
-      <FileInput setTransactions={setTransactions} />
+    // Aggregate data for the chart
+    const aggregatedChartData = useMemo(() => {
+        if (!transactions.length) return [];
 
-      {/* Conditionally render dashboard components only if transactions exist. */}
-      {transactions.length > 0 ? (
-        <>
-          {/* SummaryCards component to display overall financial metrics. */}
-          <div className="mb-8">
-            <SummaryCards transactions={transactions} />
-          </div>
+      const aggregated = transactions.reduce((acc, transaction) => {
+        const date = new Date(transaction.date);
+          if (isNaN(date)) {
+              console.warn("Invalid date found:", transaction.date); // Keep for development warnings
+              return acc;
+          }
+            const month = date.toISOString().slice(0, 7); // "YYYY-MM"
 
-          {/* MonthlyExpensesChart to visualize expenses and balance over time. */}
-          <div className="rounded-lg border bg-cbe-purple-light text-cbe-purple-dark shadow-sm mb-8">
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold">Monthly Expenses and Income</h2>
+            if (!acc[month]) {
+            acc[month] = { expenses: 0, balance: null };
+            }
+
+            if (transaction.amount > 0) {
+            acc[month].expenses += transaction.amount;
+            }
+            acc[month].balance = transaction.currentBalance;
+            return acc;
+      }, {});
+
+        // Transform into array for Recharts and sort by month chronologically
+        return Object.entries(aggregated)
+            .sort(([monthA], [monthB]) => monthA.localeCompare(monthB))
+            .map(([month, { expenses, balance }]) => ({
+                month,
+                Expenses: expenses,
+                Balance: balance,
+        }));
+    }, [transactions]);
+
+    return (
+      <div className="container mx-auto p-6 md:p-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
+        <h1 className="text-3xl font-bold text-cbe-purple mb-6">CBE Transaction Dashboard</h1>
+        <FileInput setTransactions={setTransactions} />
+
+        {transactions.length > 0 ? (
+          <>
+            <div className="mb-8">
+              <SummaryCards transactions={transactions} />
             </div>
-            <div className="p-6 pt-0 h-96">
-              <MonthlyExpensesChart data={transactions} />
+
+            <div className="rounded-lg border bg-cbe-purple-light text-cbe-purple-dark shadow-sm mb-8">
+              <div className="p-6">
+                <h2 className="text-2xl font-semibold">Monthly Expenses and Income</h2>
+              </div>
+              <div className="p-6 pt-0 h-96">
+                <MonthlyExpensesChart data={aggregatedChartData} />
+              </div>
             </div>
-          </div>
 
-          {/* Container for Top Recipients and Top Senders tables, using a responsive grid layout. */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-            <TopRecipientsTable transactions={transactions} />
-             {/* TopSendersTable component is removed */}
-            <TopReasonsTable transactions={transactions} />
-          </div>
-          {/* component to visualize transaction distribution by recipient as a pie chart.*/}
-          <div className='mb-8'>
-            <TransactionDistributionPieChart transactions={transactions}/>
-          </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+              <TopRecipientsTable transactions={transactions} />
+              <TopReasonsTable transactions={transactions} />
+            </div>
+            <div className='mb-8'>
+              <TransactionDistributionPieChart transactions={transactions}/>
+            </div>
 
-          {/* The main TransactionTable component to display detailed transaction records. */}
-          <div className="mt-8">
-            <TransactionTable transactions={transactions} />
-          </div>
-        </>
-      ) : (
-        <p className="text-gray-600">Please upload your CBE SMS data file (JSON format) to view your transactions.</p>
-      )}
-    </div>
-  );
+            <div className="mt-8">
+              <TransactionTable transactions={transactions} />
+            </div>
+          </>
+        ) : (
+          <p className="text-gray-600">Please upload your CBE SMS data file (JSON format) to view your transactions.</p>
+        )}
+      </div>
+    );
 }
 
 export default App;
