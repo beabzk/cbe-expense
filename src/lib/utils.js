@@ -198,16 +198,16 @@ export function sortData(data, sortColumn, sortDirection) {
     if (!sortColumn) return data;
 
     return [...data].sort((a, b) => {
-      const aValue = sortColumn === 'date' ? new Date(a[sortColumn]) : a[sortColumn];
-      const bValue = sortColumn === 'date' ? new Date(b[sortColumn]) : b[sortColumn];
+        const aValue = sortColumn === 'date' ? new Date(a[sortColumn]) : a[sortColumn];
+        const bValue = sortColumn === 'date' ? new Date(b[sortColumn]) : b[sortColumn];
 
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
     });
-  }
+}
 
-  // --- Functions for aggregating top recipients, senders, and reasons ---
+// --- Functions for aggregating top recipients, senders, and reasons ---
 
 /**
  * Aggregates transaction data to find top recipients based on transaction count and total amount.
@@ -216,24 +216,24 @@ export function sortData(data, sortColumn, sortDirection) {
  * @returns {Array<object>} - Array of top recipients with recipient, amount, and count.
  */
 export function getTopRecipients(transactions, limit = 25) {
-     const recipientCounts = {};
+    const recipientCounts = {};
     const recipientTotals = {};
 
     transactions.forEach((tx) => {
-      if (tx.receiver) {
-        recipientCounts[tx.receiver] = (recipientCounts[tx.receiver] || 0) + 1;
-        recipientTotals[tx.receiver] = (recipientTotals[tx.receiver] || 0) + tx.amount;
-      }
+        if (tx.receiver) {
+            recipientCounts[tx.receiver] = (recipientCounts[tx.receiver] || 0) + 1;
+            recipientTotals[tx.receiver] = (recipientTotals[tx.receiver] || 0) + tx.amount;
+        }
     });
 
     const sortedRecipients = Object.entries(recipientCounts)
-      .sort(([, countA], [, countB]) => countB - countA)
-      .slice(0, limit);
+        .sort(([, countA], [, countB]) => countB - countA)
+        .slice(0, limit);
 
     return sortedRecipients.map(([recipient, count]) => ({
-      recipient,
-      amount: recipientTotals[recipient],
-      count,
+        recipient,
+        amount: recipientTotals[recipient],
+        count,
     }));
 }
 
@@ -244,25 +244,25 @@ export function getTopRecipients(transactions, limit = 25) {
  * @returns {Array<object>} - Array of top senders with sender, amount, and count.
  */
 export function getTopSenders(transactions, limit = 25) {
-      const senderCounts = {};
-      const senderTotals = {};
+    const senderCounts = {};
+    const senderTotals = {};
 
-      transactions.forEach((tx) => {
+    transactions.forEach((tx) => {
         if (tx.payer) {
-          senderCounts[tx.payer] = (senderCounts[tx.payer] || 0) + 1;
-          senderTotals[tx.payer] = (senderTotals[tx.payer] || 0) + Math.abs(tx.amount);
+            senderCounts[tx.payer] = (senderCounts[tx.payer] || 0) + 1;
+            senderTotals[tx.payer] = (senderTotals[tx.payer] || 0) + Math.abs(tx.amount);
         }
-      });
+    });
 
-      const sortedSenders = Object.entries(senderCounts)
+    const sortedSenders = Object.entries(senderCounts)
         .sort(([, countA], [, countB]) => countB - countA)
         .slice(0, limit);
 
-      return sortedSenders.map(([sender, count]) => ({
+    return sortedSenders.map(([sender, count]) => ({
         sender,
         amount: senderTotals[sender],
         count
-      }));
+    }));
 }
 
 /**
@@ -276,17 +276,17 @@ export function getTopReasons(transactions, limit = 25) {
     const reasonTotals = {};
 
     transactions.forEach((tx) => {
-      if (tx.reason) {
-        reasonCounts[tx.reason] = (reasonCounts[tx.reason] || 0) + 1;
-        reasonTotals[tx.reason] = (reasonTotals[tx.reason] || 0) + Math.abs(tx.amount);
-      }
+        if (tx.reason) {
+            reasonCounts[tx.reason] = (reasonCounts[tx.reason] || 0) + 1;
+            reasonTotals[tx.reason] = (reasonTotals[tx.reason] || 0) + Math.abs(tx.amount);
+        }
     });
 
     const sortedReasons = Object.entries(reasonCounts)
-      .sort(([, countA], [, countB]) => countB - countA)
-      .slice(0, limit);
+        .sort(([, countA], [, countB]) => countB - countA)
+        .slice(0, limit);
 
-      return sortedReasons.map(([reason, count]) => ({
+    return sortedReasons.map(([reason, count]) => ({
         reason,
         category: "Unknown", // Placeholder, category mapping could be added later
         amount: reasonTotals[reason],

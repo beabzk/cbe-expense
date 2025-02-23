@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
+import React, { useState } from "react";
+import { fetchContent, extractFromPdf, extractFromSms } from "../lib/utils.js";
 
 /**
  * A component that handles file input, parsing of the uploaded JSON file,
@@ -11,31 +11,31 @@ import { fetchContent, extractFromPdf, extractFromSms } from '../lib/utils.js';
  * @returns {JSX.Element} The rendered FileInput component.
  */
 const FileInput = ({ setTransactions }) => {
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [progressMessage, setProgressMessage] = useState(''); // NEW: Progress message
+  const [progressMessage, setProgressMessage] = useState(""); // NEW: Progress message
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     setLoading(true);
-    setError('');
+    setError("");
     setTransactions([]);
-    setProgressMessage('Reading file...'); // Initial progress message
+    setProgressMessage("Reading file..."); // Initial progress message
 
     try {
       const text = await file.text();
-      setProgressMessage('Parsing JSON...');
+      setProgressMessage("Parsing JSON...");
       const parsedData = JSON.parse(text);
 
       if (!Array.isArray(parsedData)) {
-        setError('Invalid JSON format: Expected an array of messages.');
+        setError("Invalid JSON format: Expected an array of messages.");
         return;
       }
 
       const transactions = [];
-      setProgressMessage('Processing SMS messages...'); // Update progress
+      setProgressMessage("Processing SMS messages..."); // Update progress
 
       for (const [index, message] of parsedData.entries()) {
         if (message?.text) {
@@ -43,16 +43,18 @@ const FileInput = ({ setTransactions }) => {
           const balanceRegex = /Your Current Balance is ETB\s*([\d,\.]+)/;
           const balanceMatch = message.text.match(balanceRegex);
           if (balanceMatch) {
-            currentBalance = parseFloat(balanceMatch[1].replace(/,/g, ''));
+            currentBalance = parseFloat(balanceMatch[1].replace(/,/g, ""));
           }
 
           let transactionData = null;
           const link = extractFromSms(message.text);
 
-          if (link && link.includes('cbe.com.et')) {
-            setProgressMessage(`Fetching and parsing PDF ${index + 1} of ${parsedData.length}...`); // More specific progress
+          if (link && link.includes("cbe.com.et")) {
+            setProgressMessage(
+              `Fetching and parsing PDF ${index + 1} of ${parsedData.length}...`
+            ); // More specific progress
             const result = await fetchContent(link);
-            if (result.type === 'pdf') {
+            if (result.type === "pdf") {
               transactionData = extractFromPdf(result.text);
             } else {
               console.error("Error fetching or parsing PDF:", result.message);
@@ -63,15 +65,18 @@ const FileInput = ({ setTransactions }) => {
           if (transactionData) {
             transactions.push({
               ...transactionData,
-              currentBalance: currentBalance !== null ? currentBalance : transactionData.currentBalance,
+              currentBalance:
+                currentBalance !== null
+                  ? currentBalance
+                  : transactionData.currentBalance,
             });
           }
         }
 
-          // Update progress indicator.  Do this *inside* the loop to show
-          // progress as each SMS/PDF is processed.
-          const percentage = Math.round(((index + 1) / parsedData.length) * 100);
-          setProgressMessage(`Processing SMS messages... ${percentage}%`);
+        // Update progress indicator.  Do this *inside* the loop to show
+        // progress as each SMS/PDF is processed.
+        const percentage = Math.round(((index + 1) / parsedData.length) * 100);
+        setProgressMessage(`Processing SMS messages... ${percentage}%`);
       }
 
       transactions.sort((a, b) => new Date(b.date) - new Date(a.date));
@@ -79,13 +84,12 @@ const FileInput = ({ setTransactions }) => {
       if (transactions.length === 0) {
         setError("No transactions found in the file.");
       }
-
     } catch (error) {
       console.error("File processing error:", error);
-      setError('Error processing file. Please ensure it is a valid JSON file.');
+      setError("Error processing file. Please ensure it is a valid JSON file.");
     } finally {
       setLoading(false);
-      setProgressMessage(''); // Clear progress message when done
+      setProgressMessage(""); // Clear progress message when done
     }
   };
 
