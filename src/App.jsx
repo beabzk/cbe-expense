@@ -51,18 +51,17 @@ function App() {
 
   return (
     <div className="container mx-auto p-6 md:p-8 bg-gradient-to-br from-gray-50 to-white min-h-screen">
-      <h1 className="text-3xl font-bold text-cbe-purple mb-6">
+      <h1 className="text-3xl font-bold text-[#6b21a8] mb-6">
         CBE Transaction Dashboard
       </h1>
       <FileInput setTransactions={setTransactions} />
-
       {transactions.length > 0 ? (
         <>
           <div className="mb-8">
             <SummaryCards transactions={transactions} />
           </div>
 
-          <div className="rounded-lg border bg-cbe-purple-light text-cbe-purple-dark shadow-sm mb-8">
+          <div className="rounded-lg border text-[#4c1d95] shadow-sm mb-8">
             <div className="p-6">
               <h2 className="text-2xl font-semibold">
                 Monthly Expenses and Income

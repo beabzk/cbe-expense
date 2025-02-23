@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react"; // Import useState
+import React, { useMemo, useState } from "react";
 import { sortData } from "../lib/utils";
 
 /**
@@ -67,7 +67,7 @@ const TopReasonsTable = ({ transactions }) => {
   return (
     <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
       <div className="p-4 md:p-6">
-        <h2 className="text-xl font-semibold text-cbe-purple">
+        <h2 className="text-xl font-semibold text-[#6b21a8]">
           Top 25 Transaction Reasons
         </h2>
       </div>

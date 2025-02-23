@@ -62,7 +62,7 @@ const TransactionDistributionPieChart = ({ transactions }) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-white p-2 border rounded shadow-sm">
-          <p className="text-cbe-purple">{`${payload[0].name} : ${payload[0].value}`}</p>
+          <p className="text-[#6b21a8]">{`${payload[0].name} : ${payload[0].value}`}</p>
         </div>
       );
     }
@@ -73,7 +73,7 @@ const TransactionDistributionPieChart = ({ transactions }) => {
   return (
     <div className="rounded-lg border bg-card text-card-foreground shadow-sm">
       <div className="p-6">
-        <h2 className="text-2xl font-semibold text-cbe-purple">
+        <h2 className="text-2xl font-semibold text-[#6b21a8]">
           Transaction Distribution by Recipients
         </h2>
       </div>

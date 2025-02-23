@@ -89,7 +89,7 @@ const TransactionTable = ({ transactions = [] }) => {
             type="date"
             value={filterStart}
             onChange={(e) => setFilterStart(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-transparent"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#6b21a8] focus:border-transparent"
           />
         </div>
         <div className="flex flex-col">
@@ -104,16 +104,14 @@ const TransactionTable = ({ transactions = [] }) => {
             type="date"
             value={filterEnd}
             onChange={(e) => setFilterEnd(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-cbe-purple focus:border-transparent"
+            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#6b21a8] focus:border-transparent"
           />
         </div>
       </div>
 
       <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
         <div className="p-4 md:p-6">
-          <h2 className="text-xl font-semibold text-cbe-purple">
-            Transactions
-          </h2>
+          <h2 className="text-xl font-semibold text-[#6b21a8]">Transactions</h2>
         </div>
         <div className="p-4 md:p-6 pt-0">
           <div className="overflow-x-auto">
