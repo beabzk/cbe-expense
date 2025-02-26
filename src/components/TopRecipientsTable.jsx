@@ -7,9 +7,10 @@ import { sortData } from "../lib/utils";
  *
  * @param {object} props The component props.
  * @param {Array<object>} props.transactions An array of transaction objects.
+ * @param {boolean} props.darkMode - Whether dark mode is enabled
  * @returns {JSX.Element}
  */
-const TopRecipientsTable = ({ transactions }) => {
+const TopRecipientsTable = ({ transactions, darkMode }) => {
   const [sortColumn, setSortColumn] = useState("amount"); // Initial sort column
   const [sortDirection, setSortDirection] = useState("desc"); // Initial sort direction
 
@@ -43,7 +44,7 @@ const TopRecipientsTable = ({ transactions }) => {
       if (tx.receiver) {
         recipientCounts[tx.receiver] = (recipientCounts[tx.receiver] || 0) + 1;
         recipientTotals[tx.receiver] =
-          (recipientTotals[tx.receiver] || 0) + tx.amount;
+          (recipientTotals[tx.receiver] || 0) + Math.abs(tx.amount);
       }
     });
     // Prepare the data in an array format suitable for sorting
@@ -64,74 +65,109 @@ const TopRecipientsTable = ({ transactions }) => {
    * useMemo ensures sorting is only recalculated when necessary.
    */
   const sortedRecipients = useMemo(() => {
-    return sortData(topRecipients, sortColumn, sortDirection);
+    // Limit to top 25 recipients *after* sorting
+    return sortData(topRecipients, sortColumn, sortDirection).slice(0, 25);
   }, [topRecipients, sortColumn, sortDirection]);
 
   return (
-    <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
+    <div
+      className={`rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl ${
+        darkMode
+          ? "bg-gray-800 border border-gray-700 text-gray-300"
+          : "bg-white border border-gray-200 text-gray-800"
+      }`}
+    >
       <div className="p-4 md:p-6">
-        <h2 className="text-xl font-semibold text-[#6b21a8]">
+        <h2
+          className={`text-xl font-semibold ${
+            darkMode ? "text-purple-300" : "text-[#4c1d95]"
+          }`}
+        >
           Top 25 Recipients
         </h2>
       </div>
       <div className="p-4 md:p-6 pt-0">
         <div className="overflow-x-auto">
-          {" "}
-          {/* Use overflow-x-auto for horizontal scrolling on small screens */}
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className={darkMode ? "bg-gray-700" : "bg-gray-50"}>
               <tr>
                 <th
                   scope="col"
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                    darkMode ? "text-gray-300" : "text-gray-500"
+                  }`}
                   onClick={() => handleSort("recipient")}
                 >
-                  Recipient{" "}
-                  {sortColumn === "recipient"
-                    ? sortDirection === "asc"
-                      ? "↑"
-                      : "↓"
-                    : ""}
+                  Recipient
+                  {sortColumn === "recipient" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                    darkMode ? "text-gray-300" : "text-gray-500"
+                  }`}
                   onClick={() => handleSort("amount")}
                 >
-                  Amount (ETB){" "}
-                  {sortColumn === "amount"
-                    ? sortDirection === "asc"
-                      ? "↑"
-                      : "↓"
-                    : ""}
+                  Amount (ETB)
+                  {sortColumn === "amount" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                    darkMode ? "text-gray-300" : "text-gray-500"
+                  }`}
                   onClick={() => handleSort("count")}
                 >
-                  Count{" "}
-                  {sortColumn === "count"
-                    ? sortDirection === "asc"
-                      ? "↑"
-                      : "↓"
-                    : ""}
+                  Count
+                  {sortColumn === "count" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody
+              className={`divide-y  ${
+                darkMode
+                  ? "bg-gray-800 divide-gray-600"
+                  : "bg-white divide-gray-200"
+              }`}
+            >
               {sortedRecipients.map((item, index) => (
                 <tr
                   key={index}
-                  className="hover:bg-gray-50 transition-colors duration-150"
+                  className={`hover:bg-gray-50 transition-colors duration-150 ${
+                    darkMode ? "hover:bg-gray-700/50" : ""
+                  }`}
                 >
-                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    className={`px-3 py-4 whitespace-nowrap text-sm ${
+                      darkMode ? "text-gray-200" : "text-gray-900"
+                    }`}
+                  >
                     {item.recipient}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                  <td
+                    className={`px-3 py-4 whitespace-nowrap text-sm text-right ${
+                      darkMode ? "text-gray-200" : "text-gray-900"
+                    }`}
+                  >
                     {item.amount.toFixed(2)}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                  <td
+                    className={`px-3 py-4 whitespace-nowrap text-sm text-right ${
+                      darkMode ? "text-gray-200" : "text-gray-900"
+                    }`}
+                  >
                     {item.count}
                   </td>
                 </tr>
@@ -139,7 +175,13 @@ const TopRecipientsTable = ({ transactions }) => {
             </tbody>
           </table>
           {sortedRecipients.length === 0 && (
-            <div className="p-4 text-gray-600">No transactions found.</div>
+            <div
+              className={`p-4 text-center ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              No transactions found.
+            </div>
           )}
         </div>
       </div>

@@ -6,9 +6,10 @@ import { sortData } from "../lib/utils";
  *
  * @param {object} props The component props
  * @param {Array} props.transactions The transaction data
+ * @param {boolean} props.darkMode - Whether dark mode is enabled
  * @returns {JSX.Element}
  */
-const TopReasonsTable = ({ transactions }) => {
+const TopReasonsTable = ({ transactions, darkMode }) => {
   const [sortColumn, setSortColumn] = useState("amount"); // Initialize
   const [sortDirection, setSortDirection] = useState("desc");
 
@@ -31,7 +32,6 @@ const TopReasonsTable = ({ transactions }) => {
    * useMemo ensures that this calculation only happens when `transactions` changes.
    */
   const topReasons = useMemo(() => {
-    // ... (your existing aggregation logic)
     if (!transactions || transactions.length === 0) {
       return [];
     }
@@ -61,72 +61,109 @@ const TopReasonsTable = ({ transactions }) => {
    * useMemo ensures that the sorting only happens when necessary.
    */
   const sortedReasons = useMemo(() => {
-    return sortData(topReasons, sortColumn, sortDirection);
+    // Limit to top 25 reasons *after* sorting
+    return sortData(topReasons, sortColumn, sortDirection).slice(0, 25);
   }, [topReasons, sortColumn, sortDirection]);
 
   return (
-    <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
+    <div
+      className={`rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl ${
+        darkMode
+          ? "bg-gray-800 border border-gray-700 text-gray-300"
+          : "bg-white border border-gray-200 text-gray-800"
+      }`}
+    >
       <div className="p-4 md:p-6">
-        <h2 className="text-xl font-semibold text-[#6b21a8]">
+        <h2
+          className={`text-xl font-semibold ${
+            darkMode ? "text-purple-300" : "text-[#4c1d95]"
+          }`}
+        >
           Top 25 Transaction Reasons
         </h2>
       </div>
       <div className="p-4 md:p-6 pt-0">
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+            <thead className={darkMode ? "bg-gray-700" : "bg-gray-50"}>
               <tr>
                 <th
                   scope="col"
-                  className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                    darkMode ? "text-gray-300" : "text-gray-500"
+                  }`}
                   onClick={() => handleSort("reason")}
                 >
-                  Reason{" "}
-                  {sortColumn === "reason"
-                    ? sortDirection === "asc"
-                      ? "↑"
-                      : "↓"
-                    : ""}
+                  Reason
+                  {sortColumn === "reason" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                    darkMode ? "text-gray-300" : "text-gray-500"
+                  }`}
                   onClick={() => handleSort("amount")}
                 >
-                  Amount (ETB){" "}
-                  {sortColumn === "amount"
-                    ? sortDirection === "asc"
-                      ? "↑"
-                      : "↓"
-                    : ""}
+                  Amount (ETB)
+                  {sortColumn === "amount" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
                 <th
                   scope="col"
-                  className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                  className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                    darkMode ? "text-gray-300" : "text-gray-500"
+                  }`}
                   onClick={() => handleSort("count")}
                 >
-                  Count{" "}
-                  {sortColumn === "count"
-                    ? sortDirection === "asc"
-                      ? "↑"
-                      : "↓"
-                    : ""}
+                  Count
+                  {sortColumn === "count" && (
+                    <span className="ml-1">
+                      {sortDirection === "asc" ? "↑" : "↓"}
+                    </span>
+                  )}
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody
+              className={`divide-y  ${
+                darkMode
+                  ? "bg-gray-800 divide-gray-600"
+                  : "bg-white divide-gray-200"
+              }`}
+            >
               {sortedReasons.map((item, index) => (
                 <tr
                   key={index}
-                  className="hover:bg-gray-50 transition-colors duration-150"
+                  className={`hover:bg-gray-50 transition-colors duration-150 ${
+                    darkMode ? "hover:bg-gray-700/50" : ""
+                  }`}
                 >
-                  <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                  <td
+                    className={`px-3 py-4 whitespace-nowrap text-sm ${
+                      darkMode ? "text-gray-200" : "text-gray-900"
+                    }`}
+                  >
                     {item.reason}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                  <td
+                    className={`px-3 py-4 whitespace-nowrap text-sm text-right ${
+                      darkMode ? "text-gray-200" : "text-gray-900"
+                    }`}
+                  >
                     {item.amount.toFixed(2)}
                   </td>
-                  <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                  <td
+                    className={`px-3 py-4 whitespace-nowrap text-sm text-right ${
+                      darkMode ? "text-gray-200" : "text-gray-900"
+                    }`}
+                  >
                     {item.count}
                   </td>
                 </tr>
@@ -134,7 +171,13 @@ const TopReasonsTable = ({ transactions }) => {
             </tbody>
           </table>
           {sortedReasons.length === 0 && (
-            <div className="p-4 text-gray-600">No transactions found.</div>
+            <div
+              className={`p-4 text-center ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              No transactions found.
+            </div>
           )}
         </div>
       </div>

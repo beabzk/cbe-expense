@@ -8,9 +8,10 @@ import { sortData } from "../lib/utils";
  *
  * @param {object} props - The component props.
  * @param {Array<object>} props.transactions - An array of transaction objects.
+ * @param {boolean} props.darkMode - Whether dark mode is enabled.
  * @returns {JSX.Element} The rendered TransactionTable component.
  */
-const TransactionTable = ({ transactions = [] }) => {
+const TransactionTable = ({ transactions = [], darkMode }) => {
   const [sortColumn, setSortColumn] = useState(""); // The column to sort by.
   const [sortDirection, setSortDirection] = useState("asc"); // Sort direction ('asc' or 'desc').
   const [filterStart, setFilterStart] = useState(""); // Start date for filtering.
@@ -42,9 +43,10 @@ const TransactionTable = ({ transactions = [] }) => {
    */
   const filteredTransactions = useMemo(() => {
     return transactions.filter((tx) => {
-      if (filterStart && new Date(tx.date) < new Date(filterStart))
+      const txDate = new Date(tx.date);
+      if (filterStart && txDate < new Date(filterStart + "T00:00:00"))
         return false;
-      if (filterEnd && new Date(tx.date) > new Date(filterEnd)) return false;
+      if (filterEnd && txDate > new Date(filterEnd + "T23:59:59")) return false; // Include time for end date
       return true;
     });
   }, [transactions, filterStart, filterEnd]);
@@ -71,16 +73,18 @@ const TransactionTable = ({ transactions = [] }) => {
   // Reset to page 1 if itemsPerPage changes, avoiding out-of-bounds errors
   useEffect(() => {
     setCurrentPage(1);
-  }, [itemsPerPage]);
+  }, [itemsPerPage, sortedTransactions.length]);
 
   return (
     <div className="p-4">
       {/* Date Filtering inputs */}
-      <div className="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2">
+      <div className="mb-4 flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-4">
         <div className="flex flex-col">
           <label
             htmlFor="filterStart"
-            className="block text-sm font-medium text-gray-700"
+            className={`block text-sm font-medium ${
+              darkMode ? "text-gray-300" : "text-gray-700"
+            }`}
           >
             Start Date
           </label>
@@ -89,13 +93,19 @@ const TransactionTable = ({ transactions = [] }) => {
             type="date"
             value={filterStart}
             onChange={(e) => setFilterStart(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#6b21a8] focus:border-transparent"
+            className={`mt-1 block w-full rounded-md  p-2 focus:outline-none focus:ring-2 focus:ring-opacity-50  ${
+              darkMode
+                ? "bg-gray-700 text-white border-gray-600 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
+                : "border border-gray-300 focus:ring-[#6b21a8] focus:border-[#6b21a8]"
+            }`}
           />
         </div>
         <div className="flex flex-col">
           <label
             htmlFor="filterEnd"
-            className="block text-sm font-medium text-gray-700"
+            className={`block text-sm font-medium ${
+              darkMode ? "text-gray-300" : "text-gray-700"
+            }`}
           >
             End Date
           </label>
@@ -104,94 +114,147 @@ const TransactionTable = ({ transactions = [] }) => {
             type="date"
             value={filterEnd}
             onChange={(e) => setFilterEnd(e.target.value)}
-            className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-[#6b21a8] focus:border-transparent"
+            className={`mt-1 block w-full  rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-opacity-50 ${
+              darkMode
+                ? "bg-gray-700 text-white border-gray-600 focus:ring-[#8b5cf6] focus:border-[#8b5cf6]"
+                : "border border-gray-300 focus:ring-[#6b21a8] focus:border-[#6b21a8]"
+            }`}
           />
         </div>
       </div>
 
-      <div className="rounded-lg border bg-white text-gray-800 shadow-sm">
+      <div
+        className={`rounded-xl shadow-lg transition-all duration-300 hover:shadow-xl ${
+          darkMode
+            ? "bg-gray-800 border border-gray-700 text-gray-300"
+            : "bg-white border border-gray-200 text-gray-800"
+        }`}
+      >
         <div className="p-4 md:p-6">
-          <h2 className="text-xl font-semibold text-[#6b21a8]">Transactions</h2>
+          <h2
+            className={`text-xl font-semibold ${
+              darkMode ? "text-purple-300" : "text-[#4c1d95]"
+            }`}
+          >
+            Transactions
+          </h2>
         </div>
         <div className="p-4 md:p-6 pt-0">
           <div className="overflow-x-auto">
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className={darkMode ? "bg-gray-700" : "bg-gray-50"}>
                 <tr>
                   <th
                     scope="col"
                     onClick={() => handleSort("date")}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                      darkMode ? "text-gray-300" : "text-gray-500"
+                    }`}
                   >
-                    Date{" "}
-                    {sortColumn === "date"
-                      ? sortDirection === "asc"
-                        ? "↑"
-                        : "↓"
-                      : ""}
+                    Date
+                    {sortColumn === "date" && (
+                      <span className="ml-1">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     scope="col"
                     onClick={() => handleSort("amount")}
-                    className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className={`px-3 py-2 text-right text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                      darkMode ? "text-gray-300" : "text-gray-500"
+                    }`}
                   >
-                    Amount (ETB){" "}
-                    {sortColumn === "amount"
-                      ? sortDirection === "asc"
-                        ? "↑"
-                        : "↓"
-                      : ""}
+                    Amount (ETB)
+                    {sortColumn === "amount" && (
+                      <span className="ml-1">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     scope="col"
                     onClick={() => handleSort("reason")}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                      darkMode ? "text-gray-300" : "text-gray-500"
+                    }`}
                   >
-                    Reason{" "}
-                    {sortColumn === "reason"
-                      ? sortDirection === "asc"
-                        ? "↑"
-                        : "↓"
-                      : ""}
+                    Reason
+                    {sortColumn === "reason" && (
+                      <span className="ml-1">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                   <th
                     scope="col"
                     onClick={() => handleSort("receiver")}
-                    className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer"
+                    className={`px-3 py-2 text-left text-xs font-medium uppercase tracking-wider cursor-pointer ${
+                      darkMode ? "text-gray-300" : "text-gray-500"
+                    }`}
                   >
-                    Recipient{" "}
-                    {sortColumn === "receiver"
-                      ? sortDirection === "asc"
-                        ? "↑"
-                        : "↓"
-                      : ""}
+                    Recipient
+                    {sortColumn === "receiver" && (
+                      <span className="ml-1">
+                        {sortDirection === "asc" ? "↑" : "↓"}
+                      </span>
+                    )}
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody
+                className={`divide-y  ${
+                  darkMode
+                    ? "bg-gray-800 divide-gray-600"
+                    : "bg-white divide-gray-200"
+                }`}
+              >
                 {pagedTransactions.length > 0 ? (
                   pagedTransactions.map((tx, index) => (
                     <tr
                       key={tx.date + index}
-                      className="hover:bg-gray-50 transition-colors duration-150"
+                      className={`hover:bg-gray-50 transition-colors duration-150 ${
+                        darkMode ? "hover:bg-gray-700/50" : ""
+                      }`}
                     >
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td
+                        className={`px-3 py-4 whitespace-nowrap text-sm ${
+                          darkMode ? "text-gray-200" : "text-gray-900"
+                        }`}
+                      >
                         {tx.date}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-right text-gray-900">
+                      <td
+                        className={`px-3 py-4 whitespace-nowrap text-sm text-right ${
+                          darkMode ? "text-gray-200" : "text-gray-900"
+                        }`}
+                      >
                         {tx.amount && tx.amount.toFixed(2)}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td
+                        className={`px-3 py-4 whitespace-nowrap text-sm ${
+                          darkMode ? "text-gray-200" : "text-gray-900"
+                        }`}
+                      >
                         {tx.reason}
                       </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td
+                        className={`px-3 py-4 whitespace-nowrap text-sm ${
+                          darkMode ? "text-gray-200" : "text-gray-900"
+                        }`}
+                      >
                         {tx.receiver}
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="4" className="p-4 text-center text-gray-600">
+                    <td
+                      colSpan="4"
+                      className={`p-4 text-center ${
+                        darkMode ? "text-gray-400" : "text-gray-600"
+                      }`}
+                    >
                       No transactions found matching the selected criteria.
                     </td>
                   </tr>
@@ -202,13 +265,21 @@ const TransactionTable = ({ transactions = [] }) => {
 
           {/* Pagination Controls */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-center mt-4 space-x-2">
-              <div className="flex space-x-2 items-center">
+            <div
+              className={`flex items-center justify-between mt-4 ${
+                darkMode ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              <div className="flex items-center space-x-2">
                 <span>Rows per page:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="border rounded px-2 py-1"
+                  className={`border rounded px-2 py-1 ${
+                    darkMode
+                      ? "bg-gray-700 text-white border-gray-600 focus:ring-purple-500 focus:border-purple-500"
+                      : "border-gray-300 focus:ring-[#6b21a8] focus:border-[#6b21a8]"
+                  }`}
                 >
                   <option value={5}>5</option>
                   <option value={10}>10</option>
@@ -217,23 +288,38 @@ const TransactionTable = ({ transactions = [] }) => {
                   <option value={100}>100</option>
                 </select>
               </div>
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50"
-              >
-                Previous
-              </button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 disabled:opacity-50"
-              >
-                Next
-              </button>
+
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))} // Prevent going below 1
+                  disabled={currentPage === 1}
+                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-gray-300 disabled:opacity-50"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50"
+                  }`}
+                  aria-label="Previous Page"
+                >
+                  Previous
+                </button>
+                <span className="">
+                  Page {currentPage} of {totalPages}
+                </span>
+                <button
+                  onClick={() =>
+                    setCurrentPage(Math.min(totalPages, currentPage + 1))
+                  } //Prevent going past the last page
+                  disabled={currentPage === totalPages}
+                  className={`px-4 py-2 rounded-md transition-colors duration-200 ${
+                    darkMode
+                      ? "bg-gray-700 hover:bg-gray-600 text-gray-300 disabled:opacity-50"
+                      : "bg-gray-100 hover:bg-gray-200 text-gray-700 disabled:opacity-50"
+                  }`}
+                  aria-label="Next Page"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           )}
         </div>
